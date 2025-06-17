@@ -148,8 +148,6 @@ export const SOCIALS = [
 ]
 ```
 
-更多详细配置说明，请参考[配置文档](docs/配置指南.md)。
-
 ## 📝 创建文章
 
 所有文章都存放在 `src/data/blog/` 目录中，使用 Markdown 格式编写。每篇文章都需要包含前言（frontmatter）：
