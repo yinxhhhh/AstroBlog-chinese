@@ -1,7 +1,7 @@
 # AstroPaper 博客主题中文版
 
 <p align="center">
-  <img src="src/assets/images/img1.png" alt="AstroPaper 博客主题中文版" width="70%" />
+  <img src="src/assets/images/img1.png" alt="AstroPaper中文博客主题" width="70%" />
 </p>
 
 <p align="center">
@@ -18,7 +18,7 @@
 
 ## 🌟 介绍
 
-AstroPaper 中文版是一款基于 [Astro](https://astro.build/) 构建的极简、响应式、SEO友好的中文博客主题，由 [1ing](https://github.com/yinxhhhh) 完成汉化。这个主题基于 [Satnaing](https://github.com/satnaing) 的优秀作品 [AstroPaper](https://github.com/satnaing/astro-paper)，现已完全支持中文环境，让中文用户能够更方便地使用这一优秀的博客主题。
+AstroPaper 中文版是一款基于 [Astro](https://astro.build/) 构建的极简、响应式、SEO友好的中文博客主题。这个主题基于 [Satnaing](https://github.com/satnaing) 的优秀作品 [AstroPaper](https://github.com/satnaing/astro-paper)，由于原项目是全英文，我对其进行了汉化和必要的注释，让中文用户能够更方便地使用这一优秀的博客主题。
 
 ### [📸 查看演示](https://yinxh.fun)
 
