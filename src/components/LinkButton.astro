@@ -1,0 +1,79 @@
+---
+/**
+ * LinkButton 组件 - 通用链接按钮
+ * 
+ * 该组件用于创建链接或禁用状态的按钮，是网站中链接的基础组件：
+ * - 支持普通链接和禁用状态展示
+ * - 内置悬停颜色变化效果
+ * - 完整的无障碍属性支持
+ * - 允许通过插槽添加任何内容（文本、图标等）
+ * 
+ * 自定义说明：
+ * - 可通过class属性添加自定义样式
+ * - 悬停颜色可通过修改hover:text-accent类来改变
+ * - 可用于导航链接、社交媒体链接、标签链接等多种场景
+ */
+
+/**
+ * 组件属性接口定义
+ */
+export interface Props {
+  /** 可选的元素ID */
+  id?: string;
+  /** 链接目标URL */
+  href: string;
+  /** 可选的额外CSS类名 */
+  class?: string;
+  /** 无障碍标签，为屏幕阅读器提供更多上下文 */
+  ariaLabel?: string;
+  /** 鼠标悬停时显示的提示文本 */
+  title?: string;
+  /** 是否为禁用状态，禁用时会渲染为span而非a元素 */
+  disabled?: boolean;
+}
+
+// 解构并设置属性默认值
+const {
+  id,
+  href,
+  class: className = "",
+  ariaLabel,
+  title,
+  disabled = false,
+} = Astro.props;
+---
+
+{/* 
+  基于disabled属性条件渲染不同元素：
+  - 禁用状态：渲染为不可点击的span
+  - 正常状态：渲染为可点击的a链接
+*/}
+{
+  disabled ? (
+    /* 禁用状态下的展示元素（非交互式） */
+    <span
+      id={id}
+      class:list={["group inline-block", className]}
+      title={title}
+      aria-disabled={disabled} /* 无障碍属性，表明元素已禁用 */
+    >
+      {/* 插槽内容：可以是任何内容，如文本、图标等 */}
+      <slot />
+    </span>
+  ) : (
+    /* 正常状态下的链接元素 */
+    <a
+      id={id}
+      {href}
+      class:list={[
+        "group inline-block hover:text-accent", /* 基础样式和悬停效果，自定义：可修改hover颜色 */
+        className /* 自定义类名，允许进一步定制样式 */
+      ]}
+      aria-label={ariaLabel} /* 无障碍支持：为链接提供额外描述 */
+      title={title} /* 悬停提示文本 */
+    >
+      {/* 插槽内容：可以是任何内容，如文本、图标等 */}
+      <slot />
+    </a>
+  )
+}

@@ -1,0 +1,318 @@
+---
+/**
+ * PostDetails 组件 - 博客文章详情页布局
+ * 
+ * 这是博客文章详情页的主要布局组件，包含以下功能：
+ * - 文章内容渲染
+ * - 文章元信息显示（标题、日期、标签等）
+ * - 上下篇文章导航
+ * - 编辑链接
+ * - 分享链接
+ * - 阅读进度条
+ * - 代码块复制功能
+ * - 标题锚点链接
+ */
+
+import { render, type CollectionEntry } from "astro:content";
+import Layout from "@/layouts/Layout.astro";
+import Header from "@/components/Header.astro";
+import Footer from "@/components/Footer.astro";
+import Tag from "@/components/Tag.astro";
+import Datetime from "@/components/Datetime.astro";
+import ShareLinks from "@/components/ShareLinks.astro";
+import BackButton from "@/components/BackButton.astro";
+import BackToTopButton from "@/components/BackToTopButton.astro";
+import { getPath } from "@/utils/getPath";
+import { slugifyStr } from "@/utils/slugify";
+import IconChevronLeft from "@/assets/icons/IconChevronLeft.svg";
+import IconChevronRight from "@/assets/icons/IconChevronRight.svg";
+import { SITE } from "@/config";
+
+/**
+ * 组件属性接口定义
+ */
+export interface Props {
+  /** 当前文章数据 */
+  post: CollectionEntry<"blog">;
+  /** 所有文章数据，用于生成上下篇导航 */
+  posts: CollectionEntry<"blog">[];
+}
+
+const { post, posts } = Astro.props;
+
+// 从文章数据中解构出所需的属性
+const {
+  title,        // 文章标题
+  author,       // 作者
+  description,  // 文章描述
+  ogImage: initOgImage,  // 初始 OG 图片
+  canonicalURL, // 规范化 URL
+  pubDatetime,  // 发布日期
+  modDatetime,  // 修改日期
+  timezone,     // 时区
+  tags,         // 标签列表
+} = post.data;
+
+// 渲染文章内容
+const { Content } = await render(post);
+
+let ogImageUrl: string | undefined;
+
+// 确定 OG 图片来源
+if (typeof initOgImage === "string") {
+  ogImageUrl = initOgImage; // 远程 OG 图片（绝对 URL）
+} else if (initOgImage?.src) {
+  ogImageUrl = initOgImage.src; // 本地资源
+}
+
+// 如果启用了动态 OG 图片且没有远程或本地 OG 图片，则使用动态生成的图片
+if (!ogImageUrl && SITE.dynamicOgImage) {
+  ogImageUrl = `${getPath(post.id, post.filePath)}/index.png`;
+}
+
+// 解析 OG 图片 URL（或回退到 SITE.ogImage / 默认 `og.png`）
+const ogImage = ogImageUrl
+  ? new URL(ogImageUrl, Astro.url.origin).href
+  : undefined;
+
+// 布局组件的属性配置
+const layoutProps = {
+  title: `${title} | ${SITE.title}`,
+  author,
+  description,
+  pubDatetime,
+  modDatetime,
+  canonicalURL,
+  ogImage,
+  scrollSmooth: true,
+};
+
+/* ========== 上一篇/下一篇文章导航 ========== */
+
+// 提取所有文章的基本信息用于导航
+const allPosts = posts.map(({ data: { title }, id, filePath }) => ({
+  id,
+  title,
+  filePath,
+}));
+
+// 查找当前文章在列表中的位置
+const currentPostIndex = allPosts.findIndex(a => a.id === post.id);
+
+// 获取上一篇和下一篇文章
+const prevPost = currentPostIndex !== 0 ? allPosts[currentPostIndex - 1] : null;
+const nextPost =
+  currentPostIndex !== allPosts.length ? allPosts[currentPostIndex + 1] : null;
+---
+
+<Layout {...layoutProps}>
+  <Header />
+  <BackButton />
+  
+  <!-- 主要内容区域 -->
+  <main
+    id="main-content"
+    class:list={[
+      "mx-auto w-full max-w-app px-4 pb-12",
+      { "mt-8": !SITE.showBackButton },
+    ]}
+    data-pagefind-body
+  >
+    <!-- 文章标题 -->
+    <h1
+      transition:name={slugifyStr(title)}
+      class="inline-block text-2xl font-bold text-accent sm:text-3xl"
+    >
+      {title}
+    </h1>
+    
+    <!-- 文章元信息区域 -->
+    <div class="flex items-center gap-4">
+      <Datetime {pubDatetime} {modDatetime} {timezone} size="lg" class="my-2" />
+    </div>
+    
+    <!-- 文章内容区域 -->
+    <article
+      id="article"
+      class="app-prose mx-auto mt-8 max-w-app prose-pre:bg-(--shiki-light-bg) dark:prose-pre:bg-(--shiki-dark-bg)"
+    >
+      <Content />
+    </article>
+
+    <hr class="my-8 border-dashed" />
+
+    <!-- 标签列表 -->
+    <ul class="mt-4 mb-8 sm:my-8">
+      {tags.map(tag => <Tag tag={slugifyStr(tag)} tagName={tag} />)}
+    </ul>
+
+    <!-- 回到顶部按钮 -->
+    <BackToTopButton />
+
+    <!-- 分享链接 -->
+    <ShareLinks />
+
+    <hr class="my-6 border-dashed" />
+
+    <!-- 上一篇/下一篇文章导航按钮 -->
+    <div data-pagefind-ignore class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+      {
+        prevPost && (
+          <a
+            href={getPath(prevPost.id, prevPost.filePath)}
+            class="flex w-full gap-1 hover:opacity-75"
+          >
+            <IconChevronLeft class="inline-block flex-none rtl:rotate-180" />
+            <div>
+              <span>上一篇文章</span>
+              <div class="text-sm text-accent/85">{prevPost.title}</div>
+            </div>
+          </a>
+        )
+      }
+      {
+        nextPost && (
+          <a
+            href={getPath(nextPost.id, nextPost.filePath)}
+            class="flex w-full justify-end gap-1 text-end hover:opacity-75 sm:col-start-2"
+          >
+            <div>
+              <span>下一篇文章</span>
+              <div class="text-sm text-accent/85">{nextPost.title}</div>
+            </div>
+            <IconChevronRight class="inline-block flex-none rtl:rotate-180" />
+          </a>
+        )
+      }
+    </div>
+  </main>
+  <Footer />
+</Layout>
+
+<script is:inline data-astro-rerun>
+  /**
+   * 创建页面顶部的阅读进度条
+   * 显示用户在当前页面的阅读进度
+   */
+  function createProgressBar() {
+    // 创建进度条容器
+    const progressContainer = document.createElement("div");
+    progressContainer.className =
+      "progress-container fixed top-0 z-10 h-1 w-full bg-background";
+
+    // 创建进度条元素
+    const progressBar = document.createElement("div");
+    progressBar.className = "progress-bar h-1 w-0 bg-accent";
+    progressBar.id = "myBar";
+
+    // 将进度条添加到容器中
+    progressContainer.appendChild(progressBar);
+
+    // 将进度条容器添加到页面主体中
+    document.body.appendChild(progressContainer);
+  }
+  createProgressBar();
+
+  /**
+   * 根据用户滚动位置更新进度条
+   * 计算滚动百分比并更新进度条宽度
+   */
+  function updateScrollProgress() {
+    document.addEventListener("scroll", () => {
+      const winScroll =
+        document.body.scrollTop || document.documentElement.scrollTop;
+      const height =
+        document.documentElement.scrollHeight -
+        document.documentElement.clientHeight;
+      const scrolled = (winScroll / height) * 100;
+      if (document) {
+        const myBar = document.getElementById("myBar");
+        if (myBar) {
+          myBar.style.width = scrolled + "%";
+        }
+      }
+    });
+  }
+  updateScrollProgress();
+
+  /**
+   * 为文档中的标题添加锚点链接
+   * 允许用户轻松分享特定章节的链接
+   */
+  function addHeadingLinks() {
+    const headings = Array.from(
+      document.querySelectorAll("h2, h3, h4, h5, h6")
+    );
+    for (const heading of headings) {
+      heading.classList.add("group");
+      const link = document.createElement("a");
+      link.className =
+        "heading-link ms-2 no-underline opacity-75 md:opacity-0 md:group-hover:opacity-100 md:focus:opacity-100";
+      link.href = "#" + heading.id;
+
+      const span = document.createElement("span");
+      span.ariaHidden = "true";
+      span.innerText = "#";
+      link.appendChild(span);
+      heading.appendChild(link);
+    }
+  }
+  addHeadingLinks();
+
+  /**
+   * 为代码块添加复制按钮
+   * 允许用户一键复制代码内容
+   */
+  function attachCopyButtons() {
+    const copyButtonLabel = "Copy";
+    const codeBlocks = Array.from(document.querySelectorAll("pre"));
+
+    for (const codeBlock of codeBlocks) {
+      const wrapper = document.createElement("div");
+      wrapper.style.position = "relative";
+
+      const copyButton = document.createElement("button");
+      copyButton.className =
+        "copy-code absolute end-3 top-3 rounded bg-muted/80 px-2 py-1 text-xs leading-4 text-foreground font-medium";
+      copyButton.innerHTML = copyButtonLabel;
+      codeBlock.setAttribute("tabindex", "0");
+      codeBlock.appendChild(copyButton);
+
+      // 用相对定位的父元素包装代码块
+      codeBlock?.parentNode?.insertBefore(wrapper, codeBlock);
+      wrapper.appendChild(codeBlock);
+
+      copyButton.addEventListener("click", async () => {
+        await copyCode(codeBlock, copyButton);
+      });
+    }
+
+    /**
+     * 复制代码块内容到剪贴板
+     * @param {HTMLElement} block - 代码块元素
+     * @param {HTMLButtonElement} button - 复制按钮元素
+     */
+    async function copyCode(block, button) {
+      const code = block.querySelector("code");
+      const text = code?.innerText;
+
+      await navigator.clipboard.writeText(text ?? "");
+
+      // 提供视觉反馈表示任务完成
+      button.innerText = "Copied";
+
+      setTimeout(() => {
+        button.innerText = copyButtonLabel;
+      }, 700);
+    }
+  }
+  attachCopyButtons();
+
+  /**
+   * 页面切换后滚动到顶部
+   * 在 Astro 页面转换后重置滚动位置
+   */
+  document.addEventListener("astro:after-swap", () =>
+    window.scrollTo({ left: 0, top: 0, behavior: "instant" })
+  );
+</script>

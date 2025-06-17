@@ -1,0 +1,62 @@
+---
+/**
+ * ShareLinks 组件 - 文章社交分享链接
+ * 
+ * 该组件展示文章的分享链接，允许读者轻松分享文章到各个社交平台：
+ * - 自动从constants.ts中读取社交分享平台配置
+ * - 自动生成包含当前URL的分享链接
+ * - 支持图标和无障碍标签
+ * - 包含悬停动画效果
+ * - 响应式布局（移动设备上居中，桌面设备左对齐）
+ * 
+ * 自定义说明：
+ * - 要添加或修改分享平台，请编辑src/constants.ts中的SHARE_LINKS数组
+ * - 可通过修改class来调整图标大小、间距和悬停效果
+ * - 可修改"分享这篇文章到："文本或样式
+ */
+import { SHARE_LINKS } from "@/constants";
+import LinkButton from "./LinkButton.astro";
+
+// 获取当前页面URL，用于生成分享链接
+const URL = Astro.url;
+---
+
+{/* 
+  仅当配置了至少一个分享链接时显示组件
+  自定义：可以在constants.ts中添加更多社交分享平台
+*/}
+{
+  SHARE_LINKS.length > 0 && (
+    <div class="flex flex-none flex-col items-center justify-center gap-1 md:items-start">
+      {/* 
+        分享提示文本
+        自定义：可以修改此文本或调整样式（如改变italic为其他样式）
+      */}
+      <span class="italic">分享这篇文章到：</span>
+      
+      {/* 分享按钮容器 */}
+      <div class="text-center">
+        {/* 遍历所有配置的社交分享链接 */}
+        {SHARE_LINKS.map(social => (
+          <LinkButton
+            href={`${social.href + URL}`}
+            class="scale-90 p-2 hover:rotate-6 sm:p-1" /* 悬停时旋转效果，响应式内边距 */
+            title={social.linkTitle}
+          >
+            {/* 
+              社交媒体图标
+              自定义：可通过修改下面的class调整图标大小、颜色和效果
+              - scale-125：调整图标大小
+              - stroke-current：图标使用当前文本颜色
+              - opacity-90：使图标稍微透明以增加视觉层次
+            */}
+            <social.icon class="inline-block size-6 scale-125 fill-transparent stroke-current stroke-2 opacity-90 group-hover:fill-transparent sm:scale-110" />
+            
+            {/* 无障碍：为屏幕阅读器提供文本说明 */}
+            <span class="sr-only">{social.linkTitle}</span>
+          </LinkButton>
+        ))}
+      </div>
+    </div>
+  )
+}

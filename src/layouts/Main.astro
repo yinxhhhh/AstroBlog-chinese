@@ -1,0 +1,116 @@
+---
+/**
+ * Main 组件 - 页面内容主体布局
+ * 
+ * 该组件作为页面主要内容的容器，提供以下功能：
+ * - 面包屑导航（使用Breadcrumb组件）
+ * - 页面标题和描述显示
+ * - 支持标题内的视图转换动画
+ * - 返回按钮功能（基于配置）
+ * - 响应式宽度和边距
+ * 
+ * 自定义说明：
+ * - 可通过修改class调整内容区域的宽度、内边距和外边距
+ * - 可自定义标题和描述的字体大小、样式
+ * - 可调整titleTransition来更改过渡动画效果
+ */
+import Breadcrumb from "@/components/Breadcrumb.astro";
+import { SITE } from "@/config";
+
+/**
+ * 字符串标题属性接口 - 用于普通标题
+ */
+interface StringTitleProp {
+  /** 页面标题文本 */
+  pageTitle: string;
+  /** 可选的页面描述文本 */
+  pageDesc?: string;
+}
+
+/**
+ * 数组标题属性接口 - 用于带动画效果的标题
+ */
+interface ArrayTitleProp {
+  /** 页面标题数组，第一部分是固定文本，第二部分是动画文本 */
+  pageTitle: [string, string];
+  /** 标题过渡效果的名称，用于视图转换 */
+  titleTransition: string;
+  /** 可选的页面描述文本 */
+  pageDesc?: string;
+}
+
+/** 组件属性类型定义，可以是普通标题或带动画的标题 */
+export type Props = StringTitleProp | ArrayTitleProp;
+
+const { props } = Astro;
+
+// 设置返回按钮URL，基于站点配置
+const backUrl = SITE.showBackButton ? Astro.url.pathname : "/";
+---
+
+{/* 面包屑导航 - 显示当前页面在网站层次结构中的位置 */}
+<Breadcrumb />
+
+{/* 
+  主要内容容器
+  - data-backUrl属性：用于JavaScript中获取返回URL
+  - id="main-content"：作为无障碍跳转目标
+  - 自定义：可调整max-w-app修改最大宽度，px-4调整水平内边距
+*/}
+<main
+  data-backUrl={backUrl}
+  id="main-content"
+  class="mx-auto w-full max-w-app px-4 pb-4"
+>
+  {
+    /* 
+      动态标题渲染
+      - 如果提供了titleTransition属性，使用带动画效果的标题
+      - 否则渲染普通标题
+      - 自定义：可修改text-2xl和sm:text-3xl调整不同屏幕尺寸的标题大小
+    */
+    "titleTransition" in props ? (
+      <h1 class="text-2xl font-semibold sm:text-3xl">
+        {props.pageTitle[0]}
+        {/* 使用Astro的视图转换为标题的特定部分添加动画 */}
+        <span transition:name={props.titleTransition}>
+          {props.pageTitle[1]}
+        </span>
+      </h1>
+    ) : (
+      <h1 class="text-2xl font-semibold sm:text-3xl">{props.pageTitle}</h1>
+    )
+  }
+  
+  {/* 
+    页面描述文本
+    - 斜体样式(italic)区分于正文内容
+    - 自定义：可调整mt-2和mb-6的外边距，或修改字体样式
+  */}
+  <p class="mt-2 mb-6 italic">{props.pageDesc}</p>
+  
+  {/* 插入页面特定内容 */}
+  <slot />
+</main>
+
+<script>
+  /**
+   * 处理后退按钮功能
+   * 
+   * 这段脚本负责监听键盘事件，实现Backspace键返回上一页的功能：
+   * 1. 在页面加载后监听键盘事件
+   * 2. 检测是否按下Backspace键且无聚焦的文本输入元素
+   * 3. 如果条件满足，导航到data-backUrl属性指定的URL
+   * 
+   * 注意：如果需要禁用此功能，可以修改config.ts中的showBackButton设置
+   */
+  document.addEventListener("astro:page-load", () => {
+    // 获取主内容元素及其存储的返回URL
+    const mainContent: HTMLElement | null =
+      document.querySelector("#main-content");
+    const backUrl = mainContent?.dataset?.backurl;
+    if (backUrl) {
+      sessionStorage.setItem("backUrl", backUrl);
+    }
+  });
+</script>

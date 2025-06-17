@@ -1,0 +1,90 @@
+---
+/**
+ * Datetime 组件 - 日期时间显示组件
+ * 
+ * 用于显示文章的发布和修改时间，提供以下功能：
+ * - 支持时区转换
+ * - 自动选择显示最新时间（发布时间或修改时间）
+ * - 响应式字体大小
+ * - 无障碍访问支持
+ * - 格式化的日期和时间显示
+ * - 语义化的 HTML 结构
+ */
+
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
+import IconCalendar from "@/assets/icons/IconCalendar.svg";
+import { SITE } from "@/config";
+
+// 扩展 dayjs 功能以支持 UTC 和时区
+dayjs.extend(utc);
+dayjs.extend(timezone);
+
+/**
+ * 组件属性接口定义
+ */
+export interface Props {
+  /** 自定义 CSS 类名 */
+  class?: string;
+  /** 组件尺寸 */
+  size?: "sm" | "lg";
+  /** 时区标识符 */
+  timezone: string | undefined;
+  /** 发布日期时间 */
+  pubDatetime: string | Date;
+  /** 修改日期时间 */
+  modDatetime: string | Date | undefined | null;
+}
+
+const {
+  pubDatetime,
+  modDatetime,
+  size = "sm",
+  class: className = "",
+  timezone: postTimezone,
+} = Astro.props;
+
+/* ========== 格式化日期时间 ========== */
+
+// 选择最新的日期时间（优先显示修改时间）
+const latestDatetime =
+  modDatetime && modDatetime > pubDatetime ? modDatetime : pubDatetime;
+
+// 根据指定时区格式化日期时间
+const datetime = dayjs(latestDatetime).tz(postTimezone || SITE.timezone);
+
+// 格式化日期和时间字符串
+const date = datetime.format("D MMM, YYYY"); // 例如：'22 Mar, 2025'
+const time = datetime.format("hh:mm A"); // 例如：'08:30 PM'
+---
+
+<!-- 日期时间显示容器 -->
+<div class:list={["flex items-end space-x-2 opacity-80", className]}>
+  <!-- 日历图标 -->
+  <IconCalendar
+    class:list={[
+      "inline-block size-6 min-w-[1.375rem]",
+      { "scale-90": size === "sm" },
+    ]}
+  />
+  
+  <!-- 时间类型标签 -->
+  {
+    modDatetime && modDatetime > pubDatetime ? (
+      <span class:list={["text-sm italic", { "sm:text-base": size === "lg" }]}>
+        更新时间:
+      </span>
+    ) : (
+      <span class="sr-only">发布时间:</span>
+    )
+  }
+  
+  <!-- 格式化的日期和时间 -->
+  <span class:list={["text-sm italic", { "sm:text-base": size === "lg" }]}>
+    <time datetime={datetime.toISOString()}>{date}</time>
+    <span aria-hidden="true"> | </span>
+    <span class="sr-only">&nbsp;at&nbsp;</span>
+    <span class="text-nowrap">{time}</span>
+  </span>
+</div>

@@ -1,0 +1,73 @@
+---
+/**
+ * Tag 组件 - 文章标签展示
+ * 
+ * 该组件用于显示单个标签，带有#图标和交互效果
+ * 特点：
+ * - 支持小尺寸(sm)和大尺寸(lg)两种展示方式
+ * - 包含悬停动画效果
+ * - 支持视图转换动画(transition:name)
+ * - 使用装饰性虚线下划线
+ * 
+ * 自定义说明：
+ * - 可以通过修改class来调整标签的外观（字体大小、颜色、间距等）
+ * - 可以修改悬停效果：group-hover:text-accent（颜色）和group-hover:-top-0.5（位置）
+ * - 可以修改#图标的样式或替换为其他图标
+ */
+import IconHash from "@/assets/icons/IconHash.svg";
+
+export interface Props {
+  /** 标签的URL片段（slug形式） */
+  tag: string;
+  /** 标签显示名称 */
+  tagName: string;
+  /** 标签尺寸变体：sm(小)或lg(大) */
+  size?: "sm" | "lg";
+}
+
+const { tag, tagName, size = "sm" } = Astro.props;
+---
+
+{/* 
+  标签列表项
+  - group: 用于组合悬停效果
+  - inline-block: 允许标签内联显示
+  - 根据size属性设置不同的外边距和下划线偏移量
+*/}
+<li
+  class:list={[
+    "group inline-block group-hover:cursor-pointer",
+    size === "sm" ? "my-1 underline-offset-4" : "mx-1 my-3 underline-offset-8",
+  ]}
+>
+  {/* 
+    标签链接
+    - href: 链接到对应的标签页面
+    - transition:name: 启用页面间的视图转换动画
+    - 悬停效果: 轻微上移(-top-0.5)并改变颜色(text-accent)
+    - focus-visible: 提供键盘焦点样式以增强无障碍性
+  */}
+  <a
+    href={`/tags/${tag}/`}
+    transition:name={tag}
+    class:list={[
+      "relative pe-2 text-lg underline decoration-dashed group-hover:-top-0.5 group-hover:text-accent focus-visible:p-1 focus-visible:no-underline",
+      { "text-sm": size === "sm" },
+    ]}
+  >
+    {/* 
+      标签前的#图标
+      - 自定义：可修改这里更换图标或调整样式
+      - opacity-80: 使图标稍微透明以区分于文本
+      - 根据尺寸调整大小和位置
+    */}
+    <IconHash
+      class:list={[
+        "inline-block opacity-80",
+        { "-me-3.5 size-4": size === "sm" },
+        { "-me-5 size-6": size === "lg" },
+      ]}
+    />
+    &nbsp;<span>{tagName}</span>
+  </a>
+</li>

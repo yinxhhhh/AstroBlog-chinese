@@ -1,0 +1,50 @@
+---
+/**
+ * Footer 组件 - 网站底部版权和社交媒体链接
+ * 
+ * 该组件包含以下功能：
+ * - 版权信息显示（自动更新年份）
+ * - 社交媒体链接（通过Socials组件）
+ * - 响应式布局（小屏幕垂直布局，大屏幕水平布局）
+ * - 可选的上边距控制
+ * 
+ * 自定义说明：
+ * - 若要修改版权信息，编辑组件主体中的文本内容
+ * - 若要添加/修改社交媒体链接，请编辑src/constants.ts中的SOCIALS数组
+ * - 若要调整布局，可以修改flex相关的类名
+ */
+import Hr from "./Hr.astro";
+import Socials from "./Socials.astro";
+
+// 自动获取当前年份，用于版权信息显示
+const currentYear = new Date().getFullYear();
+
+export interface Props {
+  /** 控制是否移除顶部外边距，适用于特定布局场景 */
+  noMarginTop?: boolean;
+}
+
+const { noMarginTop = false } = Astro.props;
+---
+
+<footer class:list={["w-full", { "mt-auto": !noMarginTop }]}>
+  {/* 水平分隔线，无内边距 */}
+  <Hr noPadding />
+  
+  {/* 页脚内容容器：小屏垂直排列，大屏水平排列并反转顺序 */}
+  <div
+    class="flex flex-col items-center justify-between py-6 sm:flex-row-reverse sm:py-4"
+  >
+    {/* 社交媒体链接，居中对齐 */}
+    <Socials centered />
+    
+    {/* 版权信息容器：小屏垂直排列，大屏水平排列 */}
+    <div class="my-2 flex flex-col items-center whitespace-nowrap sm:flex-row">
+      <span>Copyright &#169; {currentYear}</span>
+      {/* 分隔符，仅在大屏幕上显示 */}
+      <span class="hidden sm:inline">&nbsp;|&nbsp;</span>
+      {/* 自定义：修改此处的版权所有者名称 */}
+      <span>*** 版权所有.</span>
+    </div>
+  </div>
+</footer>

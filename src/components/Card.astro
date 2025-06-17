@@ -1,0 +1,82 @@
+---
+/**
+ * Card 组件 - 文章卡片展示组件
+ * 
+ * 用于在文章列表中展示单篇文章的摘要信息，包括：
+ * - 文章标题（支持 h2 或 h3 标签）
+ * - 发布和修改日期
+ * - 文章描述
+ * - 视图转换动画支持
+ * - 响应式设计
+ */
+
+import { slugifyStr } from "@/utils/slugify";
+import type { CollectionEntry } from "astro:content";
+import { getPath } from "@/utils/getPath";
+import Datetime from "./Datetime.astro";
+
+/**
+ * 组件属性接口定义
+ */
+export interface Props extends CollectionEntry<"blog"> {
+  /** 标题标签变体，默认为 h2 */
+  variant?: "h2" | "h3";
+}
+
+const { variant = "h2", data, id, filePath } = Astro.props;
+
+// 从文章数据中解构出所需的属性
+const { title, description, pubDatetime, modDatetime, timezone } = data;
+
+// 标题元素的共用属性
+const headerProps = {
+  style: { viewTransitionName: slugifyStr(title) }, // 视图转换动画名称
+  class: "text-lg font-medium decoration-dashed hover:underline",
+};
+---
+
+{/* 
+  文章卡片容器
+  - 使用li元素，通常在文章列表(ul/ol)中使用
+  - my-6: 上下外边距，可自定义调整卡片间距
+  - 自定义：可添加边框、阴影或背景色以增强视觉层次
+*/}
+<li class="my-6">
+  {/* 
+    文章标题链接
+    - 自定义：可修改颜色(text-accent)、大小(text-lg)和字重(font-medium)
+    - 使用虚线下划线(decoration-dashed)作为视觉点缀
+    - focus-visible样式增强键盘导航的无障碍性
+  */}
+  <a
+    href={getPath(id, filePath)}
+    class="inline-block text-lg font-medium text-accent decoration-dashed underline-offset-4 focus-visible:no-underline focus-visible:underline-offset-0"
+  >
+    {/* 
+      动态渲染h2或h3标签，取决于variant属性
+      - 自定义：修改headerProps可统一调整所有标题样式
+      - 使用view transition name实现页面间的平滑过渡动画
+    */}
+    {
+      variant === "h2" ? (
+        <h2 {...headerProps}>{title}</h2>
+      ) : (
+        <h3 {...headerProps}>{title}</h3>
+      )
+    }
+  </a>
+  
+  {/* 
+    文章日期信息组件
+    - 显示发布日期和修改日期(如果有)
+    - 自定义：日期格式和显示方式可在Datetime组件中调整
+  */}
+  <Datetime {pubDatetime} {modDatetime} {timezone} />
+  
+  {/* 
+    文章描述/摘要
+    - 自定义：可添加字数限制、样式调整或"阅读更多"链接
+    - 可以修改字体大小、行高或文字颜色以增强可读性
+  */}
+  <p>{description}</p>
+</li>

@@ -1,0 +1,87 @@
+---
+/**
+ * Breadcrumb 组件 - 面包屑导航
+ * 
+ * 该组件自动从当前URL生成面包屑导航链接，支持特殊格式化：
+ * - 首页 > 文章 > 页码 => 首页 > 文章 (第X页)
+ * - 首页 > 标签 > 标签名 > 页码 => 首页 > 标签名 (第X页)
+ * 
+ * 自定义说明：
+ * - 若要修改面包屑格式或样式，可编辑下面的处理逻辑和JSX部分
+ * - 若要更改页码显示格式，修改相应的模板字符串
+ * - 若要添加其他特殊处理规则，可参考现有的if条件块添加
+ */
+
+// 移除当前URL路径末尾的斜杠（如果存在）
+const currentUrlPath = Astro.url.pathname.replace(/\/+$/, "");
+
+// 从路径获取URL片段数组
+// 例如：/tags/tailwindcss => ['tags', 'tailwindcss']
+const breadcrumbList = currentUrlPath.split("/").slice(1);
+
+// 特殊处理：当面包屑路径为 首页 > 文章 > 页码 时
+// 将"文章"和"页码"合并为"文章 (第X页)"
+if (breadcrumbList[0] === "posts") {
+  breadcrumbList.splice(0, 2, `文章 (第 ${breadcrumbList[1] || 1} 页)`);
+}
+
+// 特殊处理：当面包屑路径为 首页 > 标签 > [标签名] > [页码] 时
+// 将"[标签名]"和"[页码]"合并为"[标签名] (第X页)"
+if (breadcrumbList[0] === "tags" && !isNaN(Number(breadcrumbList[2]))) {
+  breadcrumbList.splice(
+    1,
+    3,
+    `${breadcrumbList[1]} ${Number(breadcrumbList[2]) === 1 ? "" : "(第 " + breadcrumbList[2] + " 页)"}`
+  );
+}
+---
+
+{/* 
+  面包屑导航容器
+  - 使用nav元素（语义化HTML）配合aria-label增强无障碍性
+  - 居中对齐(mx-auto)及水平内边距(px-4)
+  - 最大宽度限制(max-w-app)与页面主体一致
+*/}
+<nav class="mx-auto mt-8 mb-1 w-full max-w-app px-4" aria-label="breadcrumb">
+  {/* 
+    面包屑列表
+    - [&>li]:inline: 所有列表项内联显示
+    - font-light: 使用细体文字区分于正文
+    - 自定义：悬停效果可通过修改opacity值调整
+  */}
+  <ul
+    class="font-light [&>li]:inline [&>li:not(:last-child)>a]:hover:opacity-100"
+  >
+    {/* 首页链接 - 固定为面包屑第一项 */}
+    <li>
+      <a href="/" class="opacity-80">首页</a>
+      {/* 分隔符 » (可自定义修改为其他符号) */}
+      <span aria-hidden="true" class="opacity-80">&raquo;</span>
+    </li>
+    {
+      /* 动态生成后续面包屑项 */
+      breadcrumbList.map((breadcrumb, index) =>
+        /* 当前页面（最后一项）- 不可点击 */
+        index + 1 === breadcrumbList.length ? (
+          <li>
+            <span
+              class:list={["capitalize opacity-75", { lowercase: index > 0 }]}
+              aria-current="page" /* 无障碍属性：标识当前页面 */
+            >
+              {/* 标签首字母大写，URL解码以显示正确的文字 */}
+              {decodeURIComponent(breadcrumb)}
+            </span>
+          </li>
+        ) : (
+          /* 中间路径链接 - 可点击 */
+          <li>
+            <a href={`/${breadcrumb}/`} class="capitalize opacity-70">
+              {breadcrumb}
+            </a>
+            <span aria-hidden="true">&raquo;</span>
+          </li>
+        )
+      )
+    }
+  </ul>
+</nav>

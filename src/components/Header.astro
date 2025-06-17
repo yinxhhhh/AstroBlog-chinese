@@ -1,0 +1,298 @@
+---
+/**
+ * Header 组件 - 网站顶部导航栏
+ * 
+ * 该组件包含以下功能：
+ * - 网站标题/Logo
+ * - 主导航菜单（Posts、Tags、About、Archives、Search）
+ * - 移动端响应式菜单
+ * - 主题切换按钮（明暗模式）
+ * - 无障碍访问支持
+ * - 当前页面状态指示
+ */
+
+import Hr from "./Hr.astro";
+import IconX from "@/assets/icons/IconX.svg";
+import IconMoon from "@/assets/icons/IconMoon.svg";
+import IconSearch from "@/assets/icons/IconSearch.svg";
+import IconArchive from "@/assets/icons/IconArchive.svg";
+import IconSunHigh from "@/assets/icons/IconSunHigh.svg";
+import IconMenuDeep from "@/assets/icons/IconMenuDeep.svg";
+import LinkButton from "./LinkButton.astro";
+import { SITE } from "@/config";
+
+const { pathname } = Astro.url;
+
+// 移除当前路径末尾的斜杠（如果存在且不是根路径）
+const currentPath =
+  pathname.endsWith("/") && pathname !== "/" ? pathname.slice(0, -1) : pathname;
+
+/**
+ * 判断给定路径是否为当前活动页面
+ * @param path - 要检查的路径
+ * @returns 是否为活动页面
+ */
+const isActive = (path: string) => {
+  const currentPathArray = currentPath.split("/").filter(p => p.trim());
+  const pathArray = path.split("/").filter(p => p.trim());
+
+  return currentPath === path || currentPathArray[0] === pathArray[0];
+};
+---
+
+<header>
+  <!-- 
+    无障碍：跳转到主内容的链接
+    这是一个无障碍功能，允许用户使用键盘Tab键直接跳转到主内容
+    该链接默认隐藏，只有在获得焦点时才会显示
+    对于使用屏幕阅读器的用户非常重要
+   -->
+  <a
+    id="skip-to-content"
+    href="#main-content"
+    class="absolute start-16 -top-full z-50 bg-background px-3 py-2 text-accent backdrop-blur-lg transition-all focus:top-4"
+  >
+    Skip to content
+  </a>
+  
+  <!-- 
+    导航容器
+    主要的导航布局容器，包含网站标题和主导航菜单
+    使用 Flexbox 布局，在小屏幕上垂直排列，大屏幕上水平排列
+    max-w-app 限制最大宽度以确保在大屏幕上的美观
+  -->
+  <div
+    id="nav-container"
+    class="mx-auto flex max-w-app flex-col items-center justify-between sm:flex-row"
+  >
+    <!-- 
+      顶部导航包装器
+      包含网站标题/Logo和移动端菜单按钮
+      在小屏幕上调整基线对齐，在大屏幕上垂直居中对齐
+      相对定位用于网站标题的绝对定位
+    -->
+    <div
+      id="top-nav-wrap"
+      class="relative flex w-full items-baseline justify-between bg-background p-4 sm:items-center sm:py-6"
+    >
+      <!-- 
+        网站标题/Logo
+        指向首页的链接，显示网站标题
+        在移动端使用绝对定位确保位置正确，在大屏幕上使用静态定位
+        自适应文字大小：移动端较小(text-xl)，大屏幕较大(text-2xl)
+        使用 whitespace-nowrap 确保标题不会换行
+      -->
+      <a
+        href="/"
+        class="absolute py-1 text-xl leading-8 font-semibold whitespace-nowrap sm:static sm:my-auto sm:text-2xl sm:leading-none"
+      >
+        {SITE.title}
+      </a>
+      
+      <!-- 
+        主导航菜单
+        包含所有页面导航链接和功能按钮
+        在移动端垂直排列，在大屏幕上水平排列
+        自适应布局：移动端全宽，大屏幕靠右对齐
+        sm:space-x-4 在大屏幕上为导航项添加水平间距
+      -->
+      <nav
+        id="nav-menu"
+        class="flex w-full flex-col items-center sm:ms-2 sm:flex-row sm:justify-end sm:space-x-4 sm:py-0"
+      >
+        <!-- 
+          移动端菜单切换按钮
+          仅在小屏幕上显示(sm:hidden)
+          控制菜单显示/隐藏状态
+          包含无障碍属性(aria-*)以支持屏幕阅读器
+          包含两个图标：菜单图标和关闭图标，通过JavaScript切换显示
+        -->
+        <button
+          id="menu-btn"
+          class="focus-outline self-end p-2 sm:hidden"
+          aria-label="Open Menu"
+          aria-expanded="false"
+          aria-controls="menu-items"
+        >
+          <IconX id="close-icon" class="hidden" />
+          <IconMenuDeep id="menu-icon" />
+        </button>
+        
+        <!-- 
+          导航菜单项列表
+          包含所有导航链接(Posts, Tags, About等)
+          使用特性：
+          1. 移动端采用网格布局(grid grid-cols-2)，大屏幕采用Flex布局(sm:flex)
+          2. 默认隐藏状态(hidden)，通过JavaScript控制显示
+          3. 移动端宽度固定(w-44)，大屏幕宽度自适应(sm:w-auto)
+          4. 使用CSS选择器简化对子元素的样式设置([&>li>a]:block)
+          5. 悬停效果(:hover:text-accent)增强交互体验
+          6. 不同设备上有不同的间距和填充设置
+        -->
+        <ul
+          id="menu-items"
+          class:list={[
+            "mt-4 grid w-44 grid-cols-2 place-content-center gap-2",
+            "[&>li>a]:block [&>li>a]:px-4 [&>li>a]:py-3 [&>li>a]:text-center [&>li>a]:font-medium [&>li>a]:hover:text-accent sm:[&>li>a]:px-2 sm:[&>li>a]:py-1",
+            "hidden",
+            "sm:mt-0 sm:flex sm:w-auto sm:gap-x-5 sm:gap-y-0",
+          ]}
+        >
+          <!-- 
+            文章页面链接 
+            指向所有博客文章列表页面
+            active-nav 类用于标识当前激活的导航项
+          -->
+          <li class="col-span-2">
+            <a href="/posts" class:list={{ "active-nav": isActive("/posts") }}>
+              Posts
+            </a>
+          </li>
+          
+          <!-- 
+            标签页面链接 
+            用于显示所有文章标签的分类页面
+            可通过标签筛选相关内容
+          -->
+          <li class="col-span-2">
+            <a href="/tags" class:list={{ "active-nav": isActive("/tags") }}>
+              Tags
+            </a>
+          </li>
+          
+          <!-- 
+            关于页面链接 
+            网站/作者介绍页面
+            通常包含个人信息、项目背景和联系方式
+          -->
+          <li class="col-span-2">
+            <a href="/about" class:list={{ "active-nav": isActive("/about") }}>
+              About
+            </a>
+          </li>
+          
+          <!-- 
+            归档页面链接（可选） 
+            根据 SITE.showArchives 配置决定是否显示
+            按年份和月份归档所有文章
+            在小屏幕上显示文本，大屏幕上显示图标
+          -->
+          {
+            SITE.showArchives && (
+              <li class="col-span-2">
+                <LinkButton
+                  href="/archives"
+                  class:list={[
+                    "focus-outline flex justify-center p-3 sm:p-1",
+                    {
+                      "active-nav [&>svg]:stroke-accent": isActive("/archives"),
+                    },
+                  ]}
+                  ariaLabel="archives"
+                  title="Archives"
+                >
+                  <IconArchive class="hidden sm:inline-block" />
+                  <span class="sm:sr-only">Archives</span>
+                </LinkButton>
+              </li>
+            )
+          }
+          
+          <!-- 
+            搜索页面链接 
+            使用 PageFind 实现的站内搜索功能
+            使用 LinkButton 组件添加图标和无障碍支持
+            根据激活状态变更图标颜色
+          -->
+          <li class="col-span-1 flex items-center justify-center">
+            <LinkButton
+              href="/search"
+              class:list={[
+                "focus-outline flex p-3 sm:p-1",
+                { "[&>svg]:stroke-accent": isActive("/search") },
+              ]}
+              ariaLabel="search"
+              title="Search"
+            >
+              <IconSearch />
+              <span class="sr-only">Search</span>
+            </LinkButton>
+          </li>
+          
+          <!-- 
+            主题切换按钮（可选）
+            根据 SITE.lightAndDarkMode 配置决定是否显示
+            使用 CSS 动画实现月亮/太阳图标的平滑切换
+            支持无障碍访问（aria-label、aria-live 属性）
+            通过 JavaScript 绑定切换主题的功能
+          -->
+          {
+            SITE.lightAndDarkMode && (
+              <li class="col-span-1 flex items-center justify-center">
+                <button
+                  id="theme-btn"
+                  class="focus-outline relative size-12 p-4 sm:size-8 hover:[&>svg]:stroke-accent"
+                  title="Toggles light & dark"
+                  aria-label="auto"
+                  aria-live="polite"
+                >
+                  <IconMoon class="absolute top-[50%] left-[50%] -translate-[50%] scale-100 rotate-0 transition-all dark:scale-0 dark:-rotate-90" />
+                  <IconSunHigh class="absolute top-[50%] left-[50%] -translate-[50%] scale-0 rotate-90 transition-all dark:scale-100 dark:rotate-0" />
+                </button>
+              </li>
+            )
+          }
+        </ul>
+      </nav>
+    </div>
+  </div>
+  <Hr />
+</header>
+
+<script>
+  /**
+   * 切换移动端导航菜单的显示/隐藏状态
+   * 处理菜单按钮点击事件，更新 ARIA 属性和图标状态
+   * 
+   * 这段脚本处理以下功能：
+   * 1. 监听移动端菜单按钮的点击事件
+   * 2. 切换菜单的显示和隐藏状态
+   * 3. 切换菜单图标和关闭图标
+   * 4. 更新无障碍属性（ARIA）以支持屏幕阅读器
+   * 5. 在 Astro 视图转换（页面导航）后重新初始化
+   */
+  function toggleNav() {
+    // 获取相关DOM元素
+    const menuBtn = document.querySelector("#menu-btn");
+    const menuItems = document.querySelector("#menu-items");
+    const menuIcon = document.querySelector("#menu-icon");
+    const closeIcon = document.querySelector("#close-icon");
+
+    // 确保所有必需的元素都存在，否则提前退出
+    if (!menuBtn || !menuItems || !menuIcon || !closeIcon) return;
+
+    // 为菜单按钮添加点击事件监听器
+    menuBtn.addEventListener("click", () => {
+      // 检查当前菜单状态（打开/关闭）
+      const openMenu = menuBtn.getAttribute("aria-expanded") === "true";
+
+      // 更新 ARIA 属性以支持无障碍访问
+      // aria-expanded 告诉屏幕阅读器菜单当前是否展开
+      menuBtn.setAttribute("aria-expanded", openMenu ? "false" : "true");
+      // aria-label 为按钮提供无障碍标签
+      menuBtn.setAttribute("aria-label", openMenu ? "Open Menu" : "Close Menu");
+
+      // 切换菜单和图标的可见性
+      menuItems.classList.toggle("hidden"); // 显示/隐藏菜单项
+      menuIcon.classList.toggle("hidden");  // 切换菜单图标
+      closeIcon.classList.toggle("hidden"); // 切换关闭图标
+    });
+  }
+
+  // 页面加载时初始化导航切换功能
+  toggleNav();
+
+  // 在 Astro 视图转换导航后重新运行
+  // Astro 使用部分页面刷新进行导航，这确保了在导航后菜单仍然正常工作
+  document.addEventListener("astro:after-swap", toggleNav);
+</script>

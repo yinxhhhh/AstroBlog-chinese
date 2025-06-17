@@ -1,0 +1,66 @@
+---
+/**
+ * AboutLayout 组件 - "关于"页面专用布局
+ * 
+ * 该组件为"关于"页面提供专门的布局结构，包括：
+ * - 全局页面结构（通过Layout组件）
+ * - 页面头部和底部（Header和Footer）
+ * - 面包屑导航
+ * - Markdown内容的样式处理
+ * 
+ * 自定义说明：
+ * - 可通过修改class来调整内容宽度、间距和排版
+ * - 可修改标题样式和大小
+ * - 通过调整app-prose类的样式可统一更改Markdown内容的显示效果
+ */
+import Header from "@/components/Header.astro";
+import Footer from "@/components/Footer.astro";
+import Breadcrumb from "@/components/Breadcrumb.astro";
+import Layout from "./Layout.astro";
+import { SITE } from "@/config";
+
+/**
+ * 组件属性接口定义
+ */
+export interface Props {
+  /** 从Markdown前置元数据中提取的信息 */
+  frontmatter: {
+    /** 页面标题 */
+    title: string;
+    /** 可选的页面描述 */
+    description?: string;
+  };
+}
+
+const { frontmatter } = Astro.props;
+---
+
+<Layout title={`${frontmatter.title} | ${SITE.title}`}>
+  {/* 页面头部：包含导航菜单和网站标题 */}
+  <Header />
+  
+  {/* 面包屑导航：显示当前页面在网站结构中的位置 */}
+  <Breadcrumb />
+  
+  {/* 主内容区 */}
+  <main id="main-content">
+    {/* 
+      关于页面内容区
+      - app-prose：应用Markdown排版样式
+      - mb-28：页面底部大间距，为了美观
+      - max-w-app：与网站其他部分保持一致的最大宽度
+      - prose-img:border-0：移除Markdown图片的边框
+      - 自定义：可修改这些类以调整布局和样式
+    */}
+    <section id="about" class="app-prose mb-28 max-w-app prose-img:border-0">
+      {/* 页面标题：响应式大小，在大屏幕上更大 */}
+      <h1 class="text-2xl tracking-wider sm:text-3xl">{frontmatter.title}</h1>
+      
+      {/* Markdown内容插槽 */}
+      <slot />
+    </section>
+  </main>
+  
+  {/* 页面底部：版权信息和社交媒体链接 */}
+  <Footer />
+</Layout>

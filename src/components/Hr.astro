@@ -1,0 +1,45 @@
+---
+/**
+ * Hr 组件 - 水平分隔线
+ * 
+ * 一个简单但功能完善的水平分隔线组件，用于视觉分隔内容区域：
+ * - 支持可选的内边距控制
+ * - 支持无障碍属性设置
+ * - 与网站整体宽度保持一致
+ * - 使用主题的边框颜色，支持明暗主题
+ * 
+ * 自定义说明：
+ * - 可通过修改border-border类来改变分隔线颜色
+ * - 可调整max-w-app以更改分隔线最大宽度
+ */
+
+/**
+ * 组件属性接口定义
+ */
+export interface Props {
+  /** 是否移除水平内边距 */
+  noPadding?: boolean;
+  /** 是否对屏幕阅读器隐藏（纯装饰性元素应设为true） */
+  ariaHidden?: boolean;
+}
+
+// 解构并设置属性默认值
+const { noPadding = false, ariaHidden = true } = Astro.props;
+---
+
+{/* 
+  分隔线容器
+  - mx-auto：水平居中
+  - max-w-app：保持与网站其他内容一致的最大宽度
+  - 根据noPadding属性动态设置水平内边距
+  - 自定义：可以调整这些类来更改分隔线的布局
+*/}
+<div class:list={["mx-auto max-w-app", noPadding ? "px-0" : "px-4"]}>
+  {/* 
+    HR元素本身
+    - border-border：使用主题的边框颜色（跟随明暗主题）
+    - aria-hidden：纯装饰元素对屏幕阅读器隐藏，增强无障碍体验
+    - 自定义：可以添加额外类来修改线条样式、粗细或颜色
+  */}
+  <hr class="border-border" aria-hidden={ariaHidden} />
+</div>

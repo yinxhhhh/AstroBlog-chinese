@@ -1,0 +1,122 @@
+---
+/**
+ * BackToTopButton 组件 - 回到顶部按钮
+ * 
+ * 提供以下功能：
+ * - 页面滚动到一定程度时显示按钮
+ * - 点击按钮平滑滚动到页面顶部
+ * - 圆形进度指示器显示阅读进度
+ * - 响应式设计（移动端和桌面端不同样式）
+ * - 无障碍访问支持
+ * - 平滑的显示/隐藏动画
+ */
+
+import IconChevronLeft from "@/assets/icons/IconChevronLeft.svg";
+import IconArrowNarrowUp from "@/assets/icons/IconArrowNarrowUp.svg";
+---
+
+<!-- 回到顶部按钮容器 -->
+<div
+  id="btt-btn-container"
+  class:list={[
+    "fixed end-4 bottom-8 z-50", // 移动端：固定在右下角
+    "md:sticky md:end-auto md:float-end md:me-1", // 桌面端：粘性定位
+    "translate-y-14 opacity-0 transition duration-500", // 初始隐藏状态
+  ]}
+>
+  <!-- 回到顶部按钮 -->
+  <button
+    data-button="back-to-top"
+    class:list={[
+      "group relative bg-background px-2 py-1",
+      "size-14 rounded-full shadow-xl", // 移动端：圆形按钮
+      "md:h-8 md:w-fit md:rounded-md md:shadow-none md:focus-visible:rounded-none", // 桌面端：方形按钮
+      "md:bg-background/35 md:bg-clip-padding md:backdrop-blur-lg", // 桌面端：半透明背景
+    ]}
+  >
+    <!-- 进度指示器（仅移动端） -->
+    <span
+      id="progress-indicator"
+      class="absolute inset-0 -z-10 block size-14 scale-110 rounded-full bg-transparent md:hidden md:h-8 md:rounded-md"
+    ></span>
+    
+    <!-- 移动端图标：旋转的 chevron -->
+    <IconChevronLeft class="inline-block rotate-90 md:hidden" />
+    
+    <!-- 桌面端内容：图标 + 文字 -->
+    <span class="sr-only text-sm group-hover:text-accent md:not-sr-only">
+      <IconArrowNarrowUp class="inline-block size-4" />
+      回到顶部
+    </span>
+  </button>
+</div>
+
+<script is:inline data-astro-rerun>
+  /**
+   * 回到顶部功能实现
+   * 
+   * 主要功能：
+   * - 监听页面滚动事件
+   * - 根据滚动位置显示/隐藏按钮
+   * - 更新圆形进度指示器
+   * - 处理点击事件滚动到顶部
+   * - 使用 requestAnimationFrame 优化性能
+   */
+  function backToTop() {
+    const rootElement = document.documentElement;
+    const btnContainer = document.querySelector("#btt-btn-container");
+    const backToTopBtn = document.querySelector("[data-button='back-to-top']");
+    const progressIndicator = document.querySelector("#progress-indicator");
+
+    // 确保所有必需的元素都存在
+    if (!rootElement || !btnContainer || !backToTopBtn || !progressIndicator)
+      return;
+
+    // 为回到顶部按钮添加点击事件监听器
+    backToTopBtn.addEventListener("click", () => {
+      document.body.scrollTop = 0; // 适用于 Safari
+      document.documentElement.scrollTop = 0; // 适用于 Chrome, Firefox, IE 和 Opera
+    });
+
+    // 根据滚动位置处理按钮可见性
+    let lastVisible = null;
+    function handleScroll() {
+      const scrollTotal = rootElement.scrollHeight - rootElement.clientHeight;
+      const scrollTop = rootElement.scrollTop;
+      const scrollPercent = Math.floor((scrollTop / scrollTotal) * 100);
+
+      // 更新圆形进度指示器
+      progressIndicator.style.setProperty(
+        "background-image",
+        `conic-gradient(var(--accent), var(--accent) ${scrollPercent}%, transparent ${scrollPercent}%)`
+      );
+
+      // 当滚动超过 30% 时显示按钮
+      const isVisible = scrollTop / scrollTotal > 0.3;
+
+      // 只在可见性改变时更新 DOM（性能优化）
+      if (isVisible !== lastVisible) {
+        btnContainer.classList.toggle("opacity-100", isVisible);
+        btnContainer.classList.toggle("translate-y-0", isVisible);
+        btnContainer.classList.toggle("opacity-0", !isVisible);
+        btnContainer.classList.toggle("translate-y-14", !isVisible);
+        lastVisible = isVisible;
+      }
+    }
+
+    // 使用 requestAnimationFrame 节流滚动事件处理
+    let ticking = false;
+    document.addEventListener("scroll", () => {
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          handleScroll();
+          ticking = false;
+        });
+        ticking = true;
+      }
+    });
+  }
+  
+  // 初始化回到顶部功能
+  backToTop();
+</script>
