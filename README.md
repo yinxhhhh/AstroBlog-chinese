@@ -1,7 +1,7 @@
 # AstroPaper 博客主题中文版
 
 <p align="center">
-  <img src="public/astropaper-og.jpg" alt="AstroPaper 博客主题中文版" width="70%" />
+  <img src="src/assets/images/img9.png" alt="AstroPaper 博客主题中文版" width="70%" />
 </p>
 
 <p align="center">
